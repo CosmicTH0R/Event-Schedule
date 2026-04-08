@@ -1,0 +1,112 @@
+name: CI / Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── Backend tests ────────────────────────────────────────────────────────────
+  backend-test:
+    name: Backend — lint & health check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Push schema (SQLite test DB)
+        run: npx prisma db push
+        env:
+          DATABASE_URL: "file:./test.db"
+
+      - name: Start server & health check
+        run: |
+          node src/server.js &
+          SERVER_PID=$!
+          sleep 3
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/health)
+          kill $SERVER_PID
+          if [ "$STATUS" != "200" ]; then
+            echo "Health check failed: HTTP $STATUS"
+            exit 1
+          fi
+          echo "Health check passed: HTTP $STATUS"
+        env:
+          DATABASE_URL: "file:./test.db"
+          JWT_SECRET: "ci_test_secret"
+          NODE_ENV: "test"
+          PORT: "3001"
+
+  # ─── Frontend build ───────────────────────────────────────────────────────────
+  frontend-build:
+    name: Frontend — build check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "http://localhost:3001"
+
+  # ─── Deploy (only on main after tests pass) ───────────────────────────────────
+  deploy:
+    name: Deploy to Railway + Vercel
+    needs: [backend-test, frontend-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Railway auto-deploys on push to main when connected to GitHub.
+      # If you use the Railway CLI, uncomment the lines below:
+      # - name: Install Railway CLI
+      #   run: npm install -g @railway/cli
+      # - name: Deploy backend to Railway
+      #   run: railway up --service backend
+      #   env:
+      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      # Vercel auto-deploys on push when connected to GitHub.
+      # If you use the Vercel CLI, uncomment the lines below:
+      # - name: Install Vercel CLI
+      #   run: npm install -g vercel
+      # - name: Deploy frontend to Vercel
+      #   run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+      #   working-directory: frontend
+
+      - name: Deploy summary
+        run: |
+          echo "✅ Tests passed. Railway and Vercel will auto-deploy from GitHub."
+          echo "Backend: https://your-app.railway.app"
+          echo "Frontend: https://your-app.vercel.app"

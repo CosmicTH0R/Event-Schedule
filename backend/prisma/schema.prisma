@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  // SQLite for local dev — change provider to "postgresql" for production
+  // SQLite for local dev — set DATABASE_URL to a postgresql:// URL for production
+  // Change provider to "postgresql" when deploying to Railway/Supabase
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
