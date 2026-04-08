@@ -9,6 +9,9 @@ export const metadata = {
   description:
     'Discover sports, movies, concerts, gaming events — all in one personalized feed.',
   manifest: '/manifest.json',
+};
+
+export const viewport = {
   themeColor: '#6c5ce7',
 };
 
