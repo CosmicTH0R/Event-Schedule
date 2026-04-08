@@ -1,7 +1,7 @@
 {
   "name": "eventpulse-backend",
   "version": "1.0.0",
-  "description": "EventPulse API Server — Phase 1",
+  "description": "EventPulse API Server — Phase 2",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -9,6 +9,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
+    "db:seed:live": "node src/scripts/seedLiveData.js",
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset && node prisma/seed.js"
   },

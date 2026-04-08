@@ -11,6 +11,8 @@ const { errorHandler, NotFoundError } = require('./middleware/errorHandler');
 const healthRouter = require('./routes/health');
 const categoriesRouter = require('./routes/categories');
 const eventsRouter = require('./routes/events');
+const adminRouter = require('./routes/admin');
+const { startScheduler } = require('./cron/scheduler');
 
 const app = express();
 
@@ -61,6 +63,7 @@ app.use('/api', globalLimiter);
 app.use('/api/health', healthRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/events', eventsRouter);
+app.use('/api/admin', adminRouter);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((req, _res, next) => {
@@ -75,6 +78,8 @@ const server = app.listen(config.port, () => {
   logger.info(
     `⚡ EventPulse API  →  http://localhost:${config.port}  [${config.nodeEnv}]`
   );
+  // Start background cron refresh jobs
+  startScheduler();
 });
 
 // ─── Graceful shutdown ────────────────────────────────────────────────────────
