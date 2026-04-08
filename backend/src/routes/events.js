@@ -93,6 +93,22 @@ router.get(
       cacheKey,
       config.cache.eventsList,
       async () => {
+        // If a specific date is requested, use exact match — skip the upcoming/past split
+        // (the split overwrites where.date with { gte } / { lt }, losing the date filter)
+        if (filters.date) {
+          const [rows, total] = await Promise.all([
+            prisma.cachedEvent.findMany({
+              where,
+              skip,
+              take: limit,
+              orderBy: [{ time: 'asc' }],
+            }),
+            prisma.cachedEvent.count({ where }),
+          ]);
+          const data = await serializeRows(rows);
+          return paginate(data, total, page, limit);
+        }
+
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
         // Upcoming events first (asc), then past events (desc), both sorted by time within date
         const [upcoming, past, total] = await Promise.all([
