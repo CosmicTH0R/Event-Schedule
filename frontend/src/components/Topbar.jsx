@@ -4,17 +4,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useStore from '@/store/useStore';
 import useAuthStore from '@/store/useAuthStore';
-import AuthDropdown from '@/components/AuthDropdown';
 
 export default function Topbar() {
   const { toggleSidebar } = useStore();
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const [query, setQuery] = useState('');
-  // null | 'login' | 'register'
-  const [authTab, setAuthTab] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const authRef = useRef(null);
   const userRef = useRef(null);
 
   const [today, setToday] = useState('');
@@ -43,9 +39,6 @@ export default function Topbar() {
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (authRef.current && !authRef.current.contains(e.target)) {
-        setAuthTab(null);
-      }
       if (userRef.current && !userRef.current.contains(e.target)) {
         setShowUserMenu(false);
       }
@@ -107,28 +100,20 @@ export default function Topbar() {
             )}
           </div>
         ) : (
-          /* Logged-out: separate Sign In + Sign Up buttons */
-          <div className="auth-btn-group" ref={authRef}>
+          /* Logged-out: two buttons navigate to dedicated pages */
+          <div className="auth-btn-group">
             <button
-              className={`auth-btn-outline${authTab === 'login' ? ' active' : ''}`}
-              onClick={() => openAuth('login')}
+              className="auth-btn-outline"
+              onClick={() => router.push('/signin')}
             >
               Sign In
             </button>
             <button
-              className={`auth-btn${authTab === 'register' ? ' active-solid' : ''}`}
-              onClick={() => openAuth('register')}
+              className="auth-btn"
+              onClick={() => router.push('/signup')}
             >
               Sign Up
             </button>
-
-            {authTab && (
-              <AuthDropdown
-                defaultTab={authTab}
-                onTabChange={setAuthTab}
-                onClose={() => setAuthTab(null)}
-              />
-            )}
           </div>
         )}
       </div>

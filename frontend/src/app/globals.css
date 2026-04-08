@@ -326,6 +326,20 @@ input { font-family: inherit; }
 .auth-submit { margin-top: 4px; padding: 11px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; width: 100%; }
 .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
+/* ===== AUTH PAGES (/signin, /signup) ===== */
+.auth-page { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 64px); padding: 24px; }
+.auth-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.35); }
+.auth-card-header { text-align: center; margin-bottom: 28px; }
+.auth-card-logo { font-size: 2.4rem; }
+.auth-card-title { font-size: 1.5rem; font-weight: 700; margin: 10px 0 4px; color: var(--text-primary); }
+.auth-card-sub { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
+.auth-submit-btn { margin-top: 4px; padding: 11px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; width: 100%; }
+.auth-submit-btn:hover { opacity: 0.88; }
+.auth-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.auth-switch-text { text-align: center; font-size: 0.85rem; color: var(--text-secondary); margin-top: 20px; }
+.auth-switch-link { background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; padding: 0; font-size: inherit; }
+.auth-switch-link:hover { text-decoration: underline; }
+
 /* ===== AUTH DROPDOWN ===== */
 .auth-btn-group { position: relative; display: flex; align-items: center; gap: 8px; }
 .auth-dropdown-wrap { position: relative; }
