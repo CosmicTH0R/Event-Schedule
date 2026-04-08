@@ -62,6 +62,7 @@ model User {
   avatarUrl    String?
   preferences  UserPreference[]
   bookmarks    Bookmark[]
+  reminders    Reminder[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 }
@@ -85,4 +86,19 @@ model Bookmark {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
+}
+
+model Reminder {
+  id           String   @id @default(cuid())
+  userId       String
+  eventId      String
+  remindBefore Int      @default(30)  // minutes before event
+  remindAt     DateTime
+  sent         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([remindAt])
+  @@index([sent])
 }

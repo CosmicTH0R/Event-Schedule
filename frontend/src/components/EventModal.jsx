@@ -1,11 +1,46 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import useStore from '@/store/useStore';
+import useAuthStore from '@/store/useAuthStore';
+import { authApi } from '@/lib/authApi';
 import { formatDate, formatTime } from '@/lib/utils';
 
 export default function EventModal() {
   const { modalEvent: ev, closeModal } = useStore();
+  const { user, token, bookmarks, addBookmark, removeBookmark, addReminder, removeReminder, reminders } = useAuthStore();
+  const [reminderLoading, setReminderLoading] = useState(false);
+
+  const isBookmarked = ev ? bookmarks.includes(ev.id) : false;
+  const existingReminder = ev ? reminders.find((r) => r.eventId === ev.id) : null;
+
+  const toggleBookmark = useCallback(async () => {
+    if (!user || !ev) return;
+    try {
+      if (isBookmarked) {
+        await authApi.removeBookmark(token, ev.id);
+        removeBookmark(ev.id);
+      } else {
+        await authApi.addBookmark(token, ev.id);
+        addBookmark(ev.id);
+      }
+    } catch (_) {}
+  }, [user, token, ev, isBookmarked, addBookmark, removeBookmark]);
+
+  const toggleReminder = useCallback(async () => {
+    if (!user || !ev) return;
+    setReminderLoading(true);
+    try {
+      if (existingReminder) {
+        await authApi.removeReminder(token, existingReminder.id);
+        removeReminder(existingReminder.id);
+      } else {
+        const data = await authApi.addReminder(token, ev.id, 30);
+        addReminder(data.reminder ?? { id: data.id, eventId: ev.id, remindBefore: 30 });
+      }
+    } catch (_) {}
+    setReminderLoading(false);
+  }, [user, token, ev, existingReminder, addReminder, removeReminder]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -85,6 +120,24 @@ export default function EventModal() {
           </div>
 
           <p className="modal-desc">{ev.description}</p>
+
+          {user && (
+            <div className="modal-actions">
+              <button
+                className={`modal-action-btn ${isBookmarked ? 'active' : ''}`}
+                onClick={toggleBookmark}
+              >
+                {isBookmarked ? '🔖 Bookmarked' : '🏷️ Bookmark'}
+              </button>
+              <button
+                className={`modal-action-btn ${existingReminder ? 'active' : ''}`}
+                onClick={toggleReminder}
+                disabled={reminderLoading}
+              >
+                {reminderLoading ? '…' : existingReminder ? '⏰ Reminder Set' : '⏰ Remind Me'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

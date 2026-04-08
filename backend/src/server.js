@@ -12,6 +12,8 @@ const healthRouter = require('./routes/health');
 const categoriesRouter = require('./routes/categories');
 const eventsRouter = require('./routes/events');
 const adminRouter = require('./routes/admin');
+const authRouter = require('./routes/auth');
+const userRouter = require('./routes/user');
 const { startScheduler } = require('./cron/scheduler');
 
 const app = express();
@@ -64,6 +66,8 @@ app.use('/api/health', healthRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((req, _res, next) => {
