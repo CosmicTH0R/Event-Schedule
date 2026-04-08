@@ -11,7 +11,8 @@ export default function Topbar() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [showAuth, setShowAuth] = useState(false);
+  // null | 'login' | 'register'
+  const [authTab, setAuthTab] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const authRef = useRef(null);
   const userRef = useRef(null);
@@ -34,11 +35,10 @@ export default function Topbar() {
     [router]
   );
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(e) {
       if (authRef.current && !authRef.current.contains(e.target)) {
-        setShowAuth(false);
+        setAuthTab(null);
       }
       if (userRef.current && !userRef.current.contains(e.target)) {
         setShowUserMenu(false);
@@ -47,6 +47,10 @@ export default function Topbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const openAuth = (tab) => {
+    setAuthTab((prev) => (prev === tab ? null : tab));
+  };
 
   return (
     <header className="topbar">
@@ -70,6 +74,7 @@ export default function Topbar() {
         <span className="today-date">{today}</span>
 
         {user ? (
+          /* Logged-in: avatar + profile dropdown */
           <div className="user-menu" ref={userRef}>
             <button
               className="user-avatar-btn"
@@ -96,15 +101,28 @@ export default function Topbar() {
             )}
           </div>
         ) : (
-          <div className="auth-dropdown-wrap" ref={authRef}>
+          /* Logged-out: separate Sign In + Sign Up buttons */
+          <div className="auth-btn-group" ref={authRef}>
             <button
-              className="auth-btn"
-              onClick={() => setShowAuth((v) => !v)}
-              aria-expanded={showAuth}
+              className={`auth-btn-outline${authTab === 'login' ? ' active' : ''}`}
+              onClick={() => openAuth('login')}
             >
               Sign In
             </button>
-            {showAuth && <AuthDropdown onClose={() => setShowAuth(false)} />}
+            <button
+              className={`auth-btn${authTab === 'register' ? ' active-solid' : ''}`}
+              onClick={() => openAuth('register')}
+            >
+              Sign Up
+            </button>
+
+            {authTab && (
+              <AuthDropdown
+                defaultTab={authTab}
+                onTabChange={setAuthTab}
+                onClose={() => setAuthTab(null)}
+              />
+            )}
           </div>
         )}
       </div>
