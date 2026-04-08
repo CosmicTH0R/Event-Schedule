@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import EventCard from '@/components/EventCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const SKELETONS = Array.from({ length: 8 });
 
@@ -46,13 +47,16 @@ export default function MyFeedPage() {
     finally { setLoading(false); }
   }
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !pagination?.hasNext) return;
     const next = page + 1;
     setPage(next);
     setLoadingMore(true);
     await fetchPage(next, true);
     setLoadingMore(false);
-  }
+  }, [loadingMore, pagination, page, activeSub]);
+
+  const sentinelRef = useInfiniteScroll(loadMore, !!pagination?.hasNext && !loading);
 
   // Build subcategory filter chips from subscribed categories
   const subscribedCats = allCategories.filter((c) => selectedCategories.includes(c.id));
@@ -121,13 +125,7 @@ export default function MyFeedPage() {
         {loadingMore && SKELETONS.map((_, i) => <SkeletonCard key={`more-${i}`} />)}
       </div>
 
-      {pagination?.hasNext && !loading && (
-        <div className="load-more-wrap">
-          <button className="btn btn-primary" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? 'Loading...' : 'Load More'}
-          </button>
-        </div>
-      )}
+      <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
     </div>
   );
 }

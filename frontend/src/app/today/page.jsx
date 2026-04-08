@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import EventCard from '@/components/EventCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { api } from '@/lib/api';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useLiveEvents } from '@/hooks/useLiveEvents';
 
 const SKELETONS = Array.from({ length: 8 });
 
@@ -14,6 +16,8 @@ export default function TodayPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+
+  const { liveIds } = useLiveEvents(60_000);
 
   async function fetchPage(p, append = false) {
     try {
@@ -30,13 +34,21 @@ export default function TodayPage() {
     fetchPage(1).finally(() => setLoading(false));
   }, []);
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !pagination?.hasNext) return;
     const next = page + 1;
     setPage(next);
     setLoadingMore(true);
     await fetchPage(next, true);
     setLoadingMore(false);
-  }
+  }, [loadingMore, pagination, page]);
+
+  const sentinelRef = useInfiniteScroll(loadMore, !!pagination?.hasNext && !loading);
+
+  // Enrich events with live status
+  const enriched = events.map((ev) =>
+    liveIds.has(ev.id) ? { ...ev, tags: [...(ev.tags || []), 'live'].filter((v, i, a) => a.indexOf(v) === i) } : ev
+  );
 
   return (
     <div className="view-wrapper">
@@ -56,7 +68,7 @@ export default function TodayPage() {
       <div className="events-grid">
         {loading
           ? SKELETONS.map((_, i) => <SkeletonCard key={i} />)
-          : events.length === 0
+          : enriched.length === 0
           ? (
             <div className="empty-state">
               <div className="empty-state-icon">📭</div>
@@ -64,18 +76,12 @@ export default function TodayPage() {
               <div className="empty-state-sub">Explore upcoming events or browse categories</div>
             </div>
           )
-          : events.map((ev) => <EventCard key={ev.id} event={ev} />)
+          : enriched.map((ev) => <EventCard key={ev.id} event={ev} />)
         }
         {loadingMore && SKELETONS.map((_, i) => <SkeletonCard key={`more-${i}`} />)}
       </div>
 
-      {pagination?.hasNext && !loading && (
-        <div className="load-more-wrap">
-          <button className="btn btn-primary" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? 'Loading...' : 'Load More'}
-          </button>
-        </div>
-      )}
+      <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
     </div>
   );
 }

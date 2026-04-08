@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import useStore from '@/store/useStore';
+import { useTheme } from '@/hooks/useTheme';
 
 const NAV_ITEMS = [
   { href: '/today', icon: '📅', label: "Today's Feed" },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 export default function Sidebar({ categories = [] }) {
   const pathname = usePathname();
   const { sidebarOpen, setSidebarOpen, selectedCategories } = useStore();
+  const { theme, toggleTheme } = useTheme();
 
   const close = () => setSidebarOpen(false);
 
@@ -76,6 +78,14 @@ export default function Sidebar({ categories = [] }) {
             <span className="nav-icon">⚙️</span>
             <span>Preferences</span>
           </Link>
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
         </div>
       </aside>
     </>

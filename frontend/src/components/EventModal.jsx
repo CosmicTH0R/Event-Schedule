@@ -6,10 +6,59 @@ import useAuthStore from '@/store/useAuthStore';
 import { authApi } from '@/lib/authApi';
 import { formatDate, formatTime } from '@/lib/utils';
 
+/** Build a Google Calendar URL for an event */
+function googleCalendarUrl(ev) {
+  const date = ev.date?.replace(/-/g, '') ?? '';
+  const time = ev.time ? ev.time.replace(':', '') + '00' : '000000';
+  const start = `${date}T${time}Z`;
+  const end = ev.endTime ? `${date}T${ev.endTime.replace(':', '')}00Z` : start;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: ev.title,
+    dates: `${start}/${end}`,
+    details: ev.description || '',
+    location: ev.venue || ev.location || '',
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+/** Generate and download a .ics file */
+function downloadIcs(ev) {
+  const date = ev.date?.replace(/-/g, '') ?? '00000000';
+  const time = ev.time ? ev.time.replace(':', '') + '00' : '000000';
+  const dtStart = `${date}T${time}Z`;
+  const dtEnd = ev.endTime
+    ? `${date}T${ev.endTime.replace(':', '')}00Z`
+    : dtStart;
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//EventPulse//EN',
+    'BEGIN:VEVENT',
+    `UID:${ev.id}@eventpulse`,
+    `SUMMARY:${ev.title}`,
+    `DESCRIPTION:${(ev.description || '').replace(/\n/g, '\\n')}`,
+    `LOCATION:${ev.venue || ev.location || ''}`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${ev.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function EventModal() {
   const { modalEvent: ev, closeModal } = useStore();
   const { user, token, bookmarks, addBookmark, removeBookmark, addReminder, removeReminder, reminders } = useAuthStore();
   const [reminderLoading, setReminderLoading] = useState(false);
+  const [shareMsg, setShareMsg] = useState('');
+  const [calOpen, setCalOpen] = useState(false);
 
   const isBookmarked = ev ? bookmarks.includes(ev.id) : false;
   const existingReminder = ev ? reminders.find((r) => r.eventId === ev.id) : null;
@@ -41,6 +90,17 @@ export default function EventModal() {
     } catch (_) {}
     setReminderLoading(false);
   }, [user, token, ev, existingReminder, addReminder, removeReminder]);
+
+  const handleShare = useCallback(async () => {
+    if (!ev) return;
+    const shareData = { title: ev.title, text: ev.description || ev.title, url: window.location.href };
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; } catch (_) {}
+    }
+    await navigator.clipboard.writeText(window.location.href).catch(() => {});
+    setShareMsg('Link copied!');
+    setTimeout(() => setShareMsg(''), 2000);
+  }, [ev]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -120,6 +180,40 @@ export default function EventModal() {
           </div>
 
           <p className="modal-desc">{ev.description}</p>
+
+          {/* Share + Calendar actions (always visible) */}
+          <div className="modal-actions">
+            <button className="modal-action-btn" onClick={handleShare}>
+              {shareMsg || '🔗 Share'}
+            </button>
+            <div className="cal-dropdown-wrap">
+              <button
+                className={`modal-action-btn ${calOpen ? 'active' : ''}`}
+                onClick={() => setCalOpen((o) => !o)}
+              >
+                📅 Add to Calendar
+              </button>
+              {calOpen && (
+                <div className="cal-dropdown">
+                  <a
+                    href={googleCalendarUrl(ev)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cal-option"
+                    onClick={() => setCalOpen(false)}
+                  >
+                    Google Calendar
+                  </a>
+                  <button
+                    className="cal-option"
+                    onClick={() => { downloadIcs(ev); setCalOpen(false); }}
+                  >
+                    Download .ics
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {user && (
             <div className="modal-actions">

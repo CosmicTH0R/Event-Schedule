@@ -2,11 +2,14 @@ import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import EventModal from '@/components/EventModal';
+import ClientInit from '@/components/ClientInit';
 
 export const metadata = {
   title: 'EventPulse — Your Personalized Event Feed',
   description:
     'Discover sports, movies, concerts, gaming events — all in one personalized feed.',
+  manifest: '/manifest.json',
+  themeColor: '#6c5ce7',
 };
 
 /** Fetch categories server-side — cached for 1 hour */
@@ -29,6 +32,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <ClientInit />
         <Sidebar categories={categories} />
         <main className="main">
           <Topbar />

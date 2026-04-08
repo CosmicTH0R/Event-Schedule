@@ -63,6 +63,7 @@ model User {
   preferences  UserPreference[]
   bookmarks    Bookmark[]
   reminders    Reminder[]
+  pushSubs     PushSubscription[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 }
@@ -101,4 +102,15 @@ model Reminder {
   @@unique([userId, eventId])
   @@index([remindAt])
   @@index([sent])
+}
+
+// Phase 4: web push subscriptions
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
