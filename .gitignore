@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Database
+prisma/dev.db
+prisma/*.db
+**/*.db
+**/*.db-journal
+
+# Next.js build output
+.next/
+out/
+frontend/.next/
+frontend/out/
+
+# Logs
+*.log
+logs/
+pino.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Roadmap (internal planning doc)
+PLAN.md

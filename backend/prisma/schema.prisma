@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite for local dev — change provider to "postgresql" for production
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id            String        @id
+  name          String
+  icon          String
+  sortOrder     Int           @default(0)
+  subcategories Subcategory[]
+}
+
+model Subcategory {
+  id         String   @id
+  name       String
+  icon       String
+  categoryId String
+  sortOrder  Int      @default(0)
+  category   Category @relation(fields: [categoryId], references: [id])
+}
+
+// Stores events fetched from external APIs (or seeded from static JSON)
+// tags stored as pipe-separated string: "live|race" (SQLite has no array type)
+model CachedEvent {
+  id            String   @id @default(cuid())
+  externalId    String   @unique        // stable ID across refreshes
+  source        String   @default("static")  // "static" | "f1" | "tmdb" | "football" | etc.
+  categoryId    String
+  subcategoryId String
+  title         String
+  description   String   @default("")
+  date          String                  // YYYY-MM-DD (string for SQLite simplicity)
+  time          String   @default("00:00")
+  endTime       String   @default("")
+  venue         String   @default("")
+  location      String   @default("")
+  imageUrl      String   @default("")
+  tags          String   @default("")   // pipe-separated: "live|race|ipl"
+  status        String   @default("upcoming")
+  fetchedAt     DateTime @default(now())
+  expiresAt     DateTime
+
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([date])
+  @@index([source])
+}
+
+// Phase 3: users — schema is defined now so migrations are clean later
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  passwordHash String?
+  name         String?
+  googleId     String?          @unique
+  avatarUrl    String?
+  preferences  UserPreference[]
+  bookmarks    Bookmark[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model UserPreference {
+  id            String   @id @default(cuid())
+  userId        String
+  categoryId    String
+  subcategoryId String?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, subcategoryId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
