@@ -77,7 +77,7 @@ export default function Topbar() {
       </div>
 
       <div className="topbar-actions">
-        <span className="today-date">{today}</span>
+        <span className="today-date" suppressHydrationWarning>{today}</span>
 
         {user ? (
           /* Logged-in: avatar + profile dropdown */
