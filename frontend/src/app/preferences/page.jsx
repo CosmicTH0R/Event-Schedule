@@ -4,20 +4,28 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function PreferencesPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const { selectedCategories, toggleCategory } = useStore();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  // Redirect if not signed in
   useEffect(() => {
+    if (!user) router.replace('/signin');
+  }, [user, router]);
+
+  useEffect(() => {
+    if (!user) return;
     api.getCategories()
       .then(setCategories)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   function handleSave() {
     setSaved(true);
@@ -26,6 +34,8 @@ export default function PreferencesPage() {
       router.push('/my-feed');
     }, 1200);
   }
+
+  if (!user) return null;
 
   if (loading) {
     return (

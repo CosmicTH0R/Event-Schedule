@@ -1,16 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import EventCard from '@/components/EventCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
+import useAuthStore from '@/store/useAuthStore';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const SKELETONS = Array.from({ length: 8 });
 
 export default function MyFeedPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const { selectedCategories } = useStore();
   const [events, setEvents] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -20,13 +24,20 @@ export default function MyFeedPage() {
   const [allCategories, setAllCategories] = useState([]);
   const [page, setPage] = useState(1);
 
+  // Redirect if not signed in
+  useEffect(() => {
+    if (!user) router.replace('/signin');
+  }, [user, router]);
+
   // Load categories for filter chips
   useEffect(() => {
+    if (!user) return;
     api.getCategories().then(setAllCategories).catch(() => {});
-  }, []);
+  }, [user]);
 
   // Load events whenever selected categories or active subcategory changes
   useEffect(() => {
+    if (!user) return;
     if (selectedCategories.length === 0) { setLoading(false); return; }
     setLoading(true);
     setPage(1);
@@ -61,6 +72,8 @@ export default function MyFeedPage() {
   // Build subcategory filter chips from subscribed categories
   const subscribedCats = allCategories.filter((c) => selectedCategories.includes(c.id));
   const allSubs = subscribedCats.flatMap((c) => c.subcategories || []);
+
+  if (!user) return null;
 
   if (selectedCategories.length === 0) {
     return (
