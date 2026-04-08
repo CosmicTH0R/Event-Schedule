@@ -47,10 +47,6 @@ export default function Topbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const openAuth = (tab) => {
-    setAuthTab((prev) => (prev === tab ? null : tab));
-  };
-
   return (
     <header className="topbar">
       <button className="menu-btn" onClick={toggleSidebar} aria-label="Toggle menu">
