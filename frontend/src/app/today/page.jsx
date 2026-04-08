@@ -16,6 +16,7 @@ export default function TodayPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  const [fallbackDate, setFallbackDate] = useState(null);
 
   const { liveIds } = useLiveEvents(60_000);
 
@@ -24,6 +25,7 @@ export default function TodayPage() {
       const result = await api.getTodayEvents(p);
       setEvents((prev) => (append ? [...prev, ...result.data] : result.data));
       setPagination(result.pagination);
+      if (result.fallbackDate) setFallbackDate(result.fallbackDate);
     } catch (err) {
       setError(err.message);
     }
@@ -54,7 +56,11 @@ export default function TodayPage() {
     <div className="view-wrapper">
       <div className="view-header">
         <h1>Today&apos;s Events</h1>
-        <p className="view-subtitle">Everything happening today — your personalized daily feed</p>
+        {fallbackDate ? (
+          <p className="view-subtitle">No events today — showing next available events on <strong>{new Date(fallbackDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' })}</strong></p>
+        ) : (
+          <p className="view-subtitle">Everything happening today — your personalized daily feed</p>
+        )}
       </div>
 
       {error && (
@@ -73,7 +79,7 @@ export default function TodayPage() {
             <div className="empty-state">
               <div className="empty-state-icon">📭</div>
               <div className="empty-state-text">No events scheduled for today</div>
-              <div className="empty-state-sub">Explore upcoming events or browse categories</div>
+              <div className="empty-state-sub">Check back later or browse upcoming events</div>
             </div>
           )
           : enriched.map((ev) => <EventCard key={ev.id} event={ev} />)

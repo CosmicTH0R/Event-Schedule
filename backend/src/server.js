@@ -86,6 +86,20 @@ const server = app.listen(config.port, () => {
   );
   // Start background cron refresh jobs
   startScheduler();
+
+  // Seed real data immediately on startup (non-blocking)
+  const { runF1Job, runTMDBJob, runFootballJob, runCricketJob, runGamingJob } = require('./cron/scheduler');
+  logger.info('Running initial data fetch from all sources...');
+  Promise.allSettled([
+    runF1Job(),
+    runTMDBJob(),
+    runCricketJob(),
+    runGamingJob(),
+    runFootballJob(), // football has internal rate-limit sleep, run last
+  ]).then((results) => {
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    logger.info({ failed }, 'Initial data fetch complete');
+  });
 });
 
 // ─── Graceful shutdown ────────────────────────────────────────────────────────

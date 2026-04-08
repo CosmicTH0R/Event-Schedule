@@ -4,8 +4,8 @@ import { useState } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { authApi } from '@/lib/authApi';
 
-export default function AuthDropdown({ onClose }) {
-  const [tab, setTab] = useState('login'); // 'login' | 'register'
+export default function AuthDropdown({ defaultTab = 'login', onTabChange, onClose }) {
+  const [tab, setTab] = useState(defaultTab);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -17,6 +17,7 @@ export default function AuthDropdown({ onClose }) {
   const switchTab = (t) => {
     setTab(t);
     setError('');
+    onTabChange?.(t);
   };
 
   const submit = async (e) => {

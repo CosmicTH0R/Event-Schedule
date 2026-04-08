@@ -18,9 +18,21 @@ async function fetchJson(path, params = {}) {
   return res.json();
 }
 
+function extractTime(match) {
+  // Try dateTimeGMT first (e.g. "2026-04-08T14:00:00")
+  const raw = (match.dateTimeGMT || '').split('T')[1]?.replace('Z', '').slice(0, 5);
+  if (raw && raw !== '00:00') return raw;
+
+  // Fall back to parsing status field: "Match starts at May 22, 03:45 GMT"
+  const statusMatch = (match.status || '').match(/(\d{1,2}:\d{2})\s*GMT/i);
+  if (statusMatch) return statusMatch[1];
+
+  return null; // will show as "All Day" — genuinely no time info
+}
+
 function matchToEvent(match) {
   const date = (match.dateTimeGMT || match.date || '').split('T')[0];
-  const time = (match.dateTimeGMT || '').split('T')[1]?.replace('Z', '').slice(0, 5) || '00:00';
+  const time = extractTime(match) || '00:00';
   if (!date) return null;
 
   const teams = Array.isArray(match.teams)

@@ -51,8 +51,13 @@ function movieToEvent(movie) {
 }
 
 function tvToEvent(show, subcategoryId = 'netflix') {
-  const date = show.first_air_date || '';
-  if (!date) return null;
+  if (!show.first_air_date) return null;
+  // For currently-airing/trending shows, use today as the date so they sort
+  // at the top alongside other current events rather than by premiere year.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const firstAir = show.first_air_date;
+  // Only use today if the show premiered in the past (already airing)
+  const date = firstAir < today ? today : firstAir;
   return normalizeEvent({
     externalId: `tmdb-tv-${show.id}`,
     source: 'tmdb',

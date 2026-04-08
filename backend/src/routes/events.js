@@ -93,15 +93,20 @@ router.get(
       cacheKey,
       config.cache.eventsList,
       async () => {
-        const [rows, total] = await Promise.all([
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        // Upcoming events first (asc), then past events (desc), both sorted by time within date
+        const [upcoming, past, total] = await Promise.all([
           prisma.cachedEvent.findMany({
-            where,
-            skip,
-            take: limit,
+            where: { ...where, date: { gte: today } },
             orderBy: [{ date: 'asc' }, { time: 'asc' }],
+          }),
+          prisma.cachedEvent.findMany({
+            where: { ...where, date: { lt: today } },
+            orderBy: [{ date: 'desc' }, { time: 'asc' }],
           }),
           prisma.cachedEvent.count({ where }),
         ]);
+        const rows = [...upcoming, ...past].slice(skip, skip + limit);
         const data = await serializeRows(rows);
         return paginate(data, total, page, limit);
       }
@@ -117,11 +122,10 @@ router.get(
   '/live',
   asyncHandler(async (req, res) => {
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
+    const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const istTime = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false });
+    const [hh, mm] = istTime.split(':');
     const currentTime = `${hh}:${mm}`;
-
     const rows = await prisma.cachedEvent.findMany({
       where: {
         date: today,
@@ -143,7 +147,8 @@ router.get(
   asyncHandler(async (req, res) => {
     const { page, limit } = req.query;
     const skip = (page - 1) * limit;
-    const today = new Date().toISOString().split('T')[0];
+    // Use IST (Asia/Kolkata) date so Indian users see correct "today"
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     const cacheKey = `events:today:${today}:${page}:${limit}`;
     const { data: result, fromCache } = await cache.getOrFetch(
@@ -151,15 +156,34 @@ router.get(
       config.cache.eventsList,
       async () => {
         const where = { date: today };
-        const [rows, total] = await Promise.all([
-          prisma.cachedEvent.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: { time: 'asc' },
-          }),
-          prisma.cachedEvent.count({ where }),
-        ]);
+        let rows = await prisma.cachedEvent.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { time: 'asc' },
+        });
+        const total = await prisma.cachedEvent.count({ where });
+
+        // Fallback: no events today → return next available date's events
+        if (rows.length === 0 && page === 1) {
+          const next = await prisma.cachedEvent.findFirst({
+            where: { date: { gt: today } },
+            orderBy: { date: 'asc' },
+            select: { date: true },
+          });
+          if (next) {
+            rows = await prisma.cachedEvent.findMany({
+              where: { date: next.date },
+              skip,
+              take: limit,
+              orderBy: { time: 'asc' },
+            });
+            const fallbackTotal = await prisma.cachedEvent.count({ where: { date: next.date } });
+            const data = await serializeRows(rows);
+            return { ...paginate(data, fallbackTotal, page, limit), fallbackDate: next.date };
+          }
+        }
+
         const data = await serializeRows(rows);
         return paginate(data, total, page, limit);
       }
@@ -178,10 +202,10 @@ router.get(
     const { page, limit, cats } = req.query;
     const skip = (page - 1) * limit;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     const future = new Date();
     future.setDate(future.getDate() + 30);
-    const futureStr = future.toISOString().split('T')[0];
+    const futureStr = future.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     const where = { date: { gte: today, lte: futureStr } };
 

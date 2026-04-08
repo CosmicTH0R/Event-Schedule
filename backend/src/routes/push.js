@@ -5,7 +5,7 @@
  */
 const { Router } = require('express');
 const { z } = require('zod');
-const prisma = require('../prismaClient');
+const prisma = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = Router();

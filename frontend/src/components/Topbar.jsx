@@ -17,12 +17,18 @@ export default function Topbar() {
   const authRef = useRef(null);
   const userRef = useRef(null);
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const [today, setToday] = useState('');
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata',
+      })
+    );
+  }, []);
 
   const handleSearch = useCallback(
     (e) => {
