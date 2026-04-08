@@ -137,7 +137,7 @@ input { font-family: inherit; }
 }
 .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 .search-input::placeholder { color: var(--text-muted); }
-.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
 .today-date { font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; font-weight: 500; }
 
 /* ===== VIEW WRAPPER ===== */
