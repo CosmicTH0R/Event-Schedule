@@ -6,6 +6,7 @@ import logger from '../utils/logger';
 import prisma from '../db';
 import cache from '../services/cacheService';
 import config from '../config';
+import { broadcastLive } from '../services/liveService';
 import type { NormalizedEvent } from '../types';
 
 // ─── Upsert helper ────────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ export async function runF1Job(): Promise<void> {
     const { inserted, updated } = await upsertEvents(events);
     await bustEventCache();
     logger.info({ inserted, updated, total: events.length }, '[cron] F1 refresh done');
+    await broadcastLive();
   } catch (err) {
     logger.warn({ err: (err as Error).message }, '[cron] F1 refresh failed');
   }
@@ -90,6 +92,7 @@ export async function runFootballJob(): Promise<void> {
     const { inserted, updated } = await upsertEvents(events);
     await bustEventCache();
     logger.info({ inserted, updated, total: events.length }, '[cron] Football refresh done');
+    await broadcastLive();
   } catch (err) {
     logger.warn({ err: (err as Error).message }, '[cron] Football refresh failed');
   }
@@ -106,6 +109,7 @@ export async function runCricketJob(): Promise<void> {
     const { inserted, updated } = await upsertEvents(events);
     await bustEventCache();
     logger.info({ inserted, updated, total: events.length }, '[cron] Cricket refresh done');
+    await broadcastLive();
   } catch (err) {
     logger.warn({ err: (err as Error).message }, '[cron] Cricket refresh failed');
   }

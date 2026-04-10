@@ -10,6 +10,7 @@ import {
 } from '../middleware/validate';
 import { searchLimiter } from '../middleware/rateLimiter';
 import { serializeEvent } from '../utils/normalizer';
+import { addClient, removeClient } from '../services/liveService';
 import config from '../config';
 import type { CachedEvent } from '@prisma/client';
 import type { CategoryMap, PaginatedResponse, SerializedEvent } from '../types';
@@ -145,7 +146,15 @@ router.get(
   })
 );
 
-// GET /api/events/live
+// GET /api/events/live/stream  — Server-Sent Events real-time feed
+// Streams live cricket / football / F1 events to all connected clients.
+// The client receives `event: live` messages whenever the live state changes.
+router.get('/live/stream', (req, res) => {
+  addClient(res);
+  req.on('close', () => removeClient(res));
+});
+
+// GET /api/events/live  — REST fallback (kept for backward-compat / health checks)
 router.get(
   '/live',
   asyncHandler(async (_req, res) => {

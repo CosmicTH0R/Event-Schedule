@@ -19,7 +19,7 @@ export default function TodayPage() {
   const [page, setPage] = useState(1);
   const [fallbackDate, setFallbackDate] = useState<string | null>(null);
 
-  const { liveIds } = useLiveEvents(60_000);
+  const { liveIds } = useLiveEvents();
 
   async function fetchPage(p: number, append = false) {
     try {
