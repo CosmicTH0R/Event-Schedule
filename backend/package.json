@@ -2,18 +2,19 @@
   "name": "eventpulse-backend",
   "version": "1.0.0",
   "description": "EventPulse API Server",
-  "main": "src/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node src/scripts/healthTest.js",
+    "start": "node dist/src/server.js",
+    "build": "tsc --project tsconfig.json",
+    "dev": "tsx watch src/server.ts",
+    "test": "tsx src/scripts/healthTest.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "node prisma/seed.js",
-    "db:seed:live": "node src/scripts/seedLiveData.js",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:live": "tsx src/scripts/seedLiveData.ts",
     "db:studio": "prisma studio",
-    "db:reset": "prisma db push --force-reset && node prisma/seed.js",
+    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
     "vapid:generate": "npx web-push generate-vapid-keys"
   },
   "dependencies": {
@@ -33,5 +34,16 @@
     "prisma": "^5.22.0",
     "web-push": "^3.6.7",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/web-push": "^3.6.4",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }
