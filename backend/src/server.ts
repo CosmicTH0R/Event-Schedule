@@ -16,6 +16,7 @@ import authRouter from './routes/auth';
 import userRouter from './routes/user';
 import pushRouter from './routes/push';
 import { startScheduler } from './cron/scheduler';
+import { startSSE, stopSSE } from './services/liveService';
 
 const app = express();
 
@@ -77,6 +78,7 @@ const server = app.listen(config.port, () => {
     `⚡ EventPulse API  →  http://localhost:${config.port}  [${config.nodeEnv}]`
   );
   startScheduler();
+  startSSE();
 
   import('./cron/scheduler').then(
     ({ runF1Job, runTMDBJob, runFootballJob, runCricketJob, runGamingJob }) => {
@@ -99,6 +101,7 @@ const server = app.listen(config.port, () => {
 
 function shutdown(signal: string): void {
   logger.info(`${signal} → shutting down gracefully`);
+  stopSSE();
   server.close(async () => {
     try {
       const prisma = (await import('./db')).default;
