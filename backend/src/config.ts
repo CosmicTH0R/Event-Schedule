@@ -10,6 +10,16 @@ const config = {
 
   jwtSecret: process.env.JWT_SECRET ?? 'dev_secret_change_in_prod',
 
+  email: {
+    host: process.env.EMAIL_HOST ?? '',
+    port: parseInt(process.env.EMAIL_PORT ?? '587', 10),
+    user: process.env.EMAIL_USER ?? '',
+    pass: process.env.EMAIL_PASS ?? '',
+    from: process.env.EMAIL_FROM ?? 'EventPulse <noreply@eventpulse.app>',
+  },
+
+  sentryDsn: process.env.SENTRY_DSN ?? '',
+
   corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
     .split(',')
     .map((s) => s.trim()),

@@ -2,6 +2,18 @@ import logger from '../utils/logger';
 import config from '../config';
 import type { Request, Response, NextFunction } from 'express';
 
+// Lazy-load Sentry to avoid a hard dependency when DSN is not configured
+function captureException(err: Error): void {
+  if (!config.sentryDsn) return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Sentry = require('@sentry/node') as typeof import('@sentry/node');
+    Sentry.captureException(err);
+  } catch {
+    // Sentry not installed — ignore
+  }
+}
+
 // ─── Custom error classes ────────────────────────────────────────────────────
 
 export class AppError extends Error {
@@ -61,6 +73,9 @@ export const errorHandler = (
   _next: NextFunction
 ): void => {
   const statusCode = err.statusCode || 500;
+
+  // Report unexpected (non-operational) errors to Sentry
+  if (!err.isOperational) captureException(err);
 
   logger.error({
     code: err.code,

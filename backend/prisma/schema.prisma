@@ -3,9 +3,10 @@ generator client {
 }
 
 datasource db {
-  // SQLite for local dev — set DATABASE_URL to a postgresql:// URL for production
-  // Change provider to "postgresql" when deploying to Railway/Supabase
-  provider = "sqlite"
+  // Use a postgresql:// DATABASE_URL for production (Railway/Supabase/Neon).
+  // For local dev: docker run --rm -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:16
+  // Then: DATABASE_URL="postgresql://postgres:dev@localhost:5432/eventpulse"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,7 +28,6 @@ model Subcategory {
 }
 
 // Stores events fetched from external APIs (or seeded from static JSON)
-// tags stored as pipe-separated string: "live|race" (SQLite has no array type)
 model CachedEvent {
   id            String   @id @default(cuid())
   externalId    String   @unique        // stable ID across refreshes
@@ -36,13 +36,13 @@ model CachedEvent {
   subcategoryId String
   title         String
   description   String   @default("")
-  date          String                  // YYYY-MM-DD (string for SQLite simplicity)
+  date          String                  // YYYY-MM-DD
   time          String   @default("00:00")
   endTime       String   @default("")
   venue         String   @default("")
   location      String   @default("")
   imageUrl      String   @default("")
-  tags          String   @default("")   // pipe-separated: "live|race|ipl"
+  tags          String[] @default([])   // native PostgreSQL text array: ["live", "race", "ipl"]
   status        String   @default("upcoming")
   fetchedAt     DateTime @default(now())
   expiresAt     DateTime
@@ -55,18 +55,19 @@ model CachedEvent {
 
 // Phase 3: users — schema is defined now so migrations are clean later
 model User {
-  id           String           @id @default(cuid())
-  email        String           @unique
-  passwordHash String?
-  name         String?
-  googleId     String?          @unique
-  avatarUrl    String?
-  preferences  UserPreference[]
-  bookmarks    Bookmark[]
-  reminders    Reminder[]
-  pushSubs     PushSubscription[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  email         String           @unique
+  passwordHash  String?
+  name          String?
+  googleId      String?          @unique
+  avatarUrl     String?
+  preferences   UserPreference[]
+  bookmarks     Bookmark[]
+  reminders     Reminder[]
+  pushSubs      PushSubscription[]
+  refreshTokens RefreshToken[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model UserPreference {
@@ -114,4 +115,16 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Phase 5: refresh tokens (long-lived, stored securely, revocable)
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique  // SHA-256 of the raw token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

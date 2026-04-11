@@ -7,7 +7,7 @@ import { authApi } from '@/lib/authApi';
 
 export default function SignInPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setAuth, syncUserData } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,7 +19,8 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const data = await authApi.login(email, password);
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken ?? ``);
+      await syncUserData(data.token);
       router.push('/today');
     } catch (err) {
       setError((err as Error).message || 'Invalid email or password');
@@ -73,3 +74,4 @@ export default function SignInPage() {
     </div>
   );
 }
+

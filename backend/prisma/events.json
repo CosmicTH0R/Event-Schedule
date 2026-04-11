@@ -1,0 +1,419 @@
+{
+  "categories": [
+    {
+      "id": "sports",
+      "name": "Sports",
+      "icon": "🏆",
+      "subcategories": [
+        {
+          "id": "f1",
+          "name": "Formula 1",
+          "icon": "🏎️",
+          "events": [
+            {
+              "id": "f1-bahrain-2026",
+              "title": "Bahrain Grand Prix 2026",
+              "description": "Season opener at the Bahrain International Circuit under the lights.",
+              "date": "2026-03-15",
+              "time": "18:00",
+              "endTime": "20:00",
+              "venue": "Bahrain International Circuit",
+              "location": "Sakhir, Bahrain",
+              "image": "https://images.unsplash.com/photo-1532906619279-a4b7267faa72?w=800",
+              "tags": ["race", "f1", "season-opener"],
+              "status": "completed"
+            },
+            {
+              "id": "f1-jeddah-2026",
+              "title": "Saudi Arabian Grand Prix 2026",
+              "description": "Night race through the streets of Jeddah.",
+              "date": "2026-03-22",
+              "time": "20:00",
+              "endTime": "22:00",
+              "venue": "Jeddah Corniche Circuit",
+              "location": "Jeddah, Saudi Arabia",
+              "image": "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800",
+              "tags": ["race", "f1", "street-circuit"],
+              "status": "completed"
+            },
+            {
+              "id": "f1-miami-2026",
+              "title": "Miami Grand Prix 2026",
+              "description": "Racing around Hard Rock Stadium in Miami Gardens.",
+              "date": "2026-05-03",
+              "time": "21:30",
+              "endTime": "23:30",
+              "venue": "Miami International Autodrome",
+              "location": "Miami, USA",
+              "image": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800",
+              "tags": ["race", "f1"],
+              "status": "upcoming"
+            },
+            {
+              "id": "f1-monaco-2026",
+              "title": "Monaco Grand Prix 2026",
+              "description": "The jewel in the crown of Formula 1 — through the streets of Monte Carlo.",
+              "date": "2026-05-25",
+              "time": "15:00",
+              "endTime": "17:00",
+              "venue": "Circuit de Monaco",
+              "location": "Monte Carlo, Monaco",
+              "image": "https://images.unsplash.com/photo-1504707748692-419802cf939d?w=800",
+              "tags": ["race", "f1", "street-circuit"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "football",
+          "name": "Football",
+          "icon": "⚽",
+          "events": [
+            {
+              "id": "ucl-final-2026",
+              "title": "UEFA Champions League Final 2026",
+              "description": "The biggest club football match of the year.",
+              "date": "2026-05-30",
+              "time": "20:00",
+              "endTime": "22:00",
+              "venue": "Puskás Aréna",
+              "location": "Budapest, Hungary",
+              "image": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800",
+              "tags": ["football", "champions-league", "final"],
+              "status": "upcoming"
+            },
+            {
+              "id": "epl-matchday-2026",
+              "title": "Premier League — Arsenal vs Manchester City",
+              "description": "Top-of-the-table clash in the English Premier League.",
+              "date": "2026-04-19",
+              "time": "17:30",
+              "endTime": "19:30",
+              "venue": "Emirates Stadium",
+              "location": "London, England",
+              "image": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800",
+              "tags": ["football", "premier-league"],
+              "status": "upcoming"
+            },
+            {
+              "id": "isl-final-2026",
+              "title": "ISL Final 2026",
+              "description": "Indian Super League grand final.",
+              "date": "2026-04-20",
+              "time": "19:30",
+              "endTime": "21:30",
+              "venue": "Jawaharlal Nehru Stadium",
+              "location": "Kochi, India",
+              "image": "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800",
+              "tags": ["football", "isl", "india"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "cricket",
+          "name": "Cricket",
+          "icon": "🏏",
+          "events": [
+            {
+              "id": "ipl-mi-csk-2026",
+              "title": "IPL 2026 — Mumbai Indians vs Chennai Super Kings",
+              "description": "The greatest rivalry in IPL returns.",
+              "date": "2026-04-12",
+              "time": "19:30",
+              "endTime": "23:00",
+              "venue": "Wankhede Stadium",
+              "location": "Mumbai, India",
+              "image": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800",
+              "tags": ["cricket", "ipl", "live"],
+              "status": "live"
+            },
+            {
+              "id": "ipl-rcb-dc-2026",
+              "title": "IPL 2026 — Royal Challengers Bengaluru vs Delhi Capitals",
+              "description": "IPL evening match under lights.",
+              "date": "2026-04-14",
+              "time": "19:30",
+              "endTime": "23:00",
+              "venue": "M. Chinnaswamy Stadium",
+              "location": "Bengaluru, India",
+              "image": "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=800",
+              "tags": ["cricket", "ipl"],
+              "status": "upcoming"
+            },
+            {
+              "id": "wtc-final-2026",
+              "title": "ICC World Test Championship Final 2026",
+              "description": "The pinnacle of Test cricket.",
+              "date": "2026-06-10",
+              "time": "15:30",
+              "endTime": "22:30",
+              "venue": "Lord's Cricket Ground",
+              "location": "London, England",
+              "image": "https://images.unsplash.com/photo-1580820267682-426da823b514?w=800",
+              "tags": ["cricket", "test", "icc"],
+              "status": "upcoming"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "movies",
+      "name": "Movies",
+      "icon": "🎬",
+      "subcategories": [
+        {
+          "id": "hollywood",
+          "name": "Hollywood",
+          "icon": "🎥",
+          "events": [
+            {
+              "id": "mov-avengers-secret-wars",
+              "title": "Avengers: Secret Wars",
+              "description": "The most anticipated Marvel movie — the conclusion of the Multiverse Saga.",
+              "date": "2026-05-01",
+              "time": "00:00",
+              "venue": "Worldwide Release",
+              "location": "Worldwide",
+              "image": "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=800",
+              "tags": ["marvel", "mcu", "blockbuster"],
+              "status": "upcoming"
+            },
+            {
+              "id": "mov-mission-impossible-9",
+              "title": "Mission: Impossible — Final Reckoning",
+              "description": "Tom Cruise returns for the next chapter of the spy franchise.",
+              "date": "2026-05-23",
+              "time": "00:00",
+              "venue": "Worldwide Release",
+              "location": "Worldwide",
+              "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800",
+              "tags": ["action", "spy", "blockbuster"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "bollywood",
+          "name": "Bollywood",
+          "icon": "🇮🇳",
+          "events": [
+            {
+              "id": "mov-pushpa-3",
+              "title": "Pushpa 3: The Rampage",
+              "description": "Allu Arjun returns as Pushpa Raj in the third instalment.",
+              "date": "2026-08-15",
+              "time": "00:00",
+              "venue": "India Release",
+              "location": "India",
+              "image": "https://images.unsplash.com/photo-1585951237318-9ea5e175b891?w=800",
+              "tags": ["bollywood", "action", "telugu"],
+              "status": "upcoming"
+            },
+            {
+              "id": "mov-war-2",
+              "title": "War 2",
+              "description": "Hrithik Roshan and Jr NTR face off in this action-packed sequel.",
+              "date": "2026-10-02",
+              "time": "00:00",
+              "venue": "India Release",
+              "location": "India",
+              "image": "https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=800",
+              "tags": ["bollywood", "action"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "anime-movies",
+          "name": "Anime Movies",
+          "icon": "🍥",
+          "events": [
+            {
+              "id": "mov-dragon-ball-2026",
+              "title": "Dragon Ball Super: Universe Saga",
+              "description": "New Dragon Ball feature film hitting theatres.",
+              "date": "2026-07-18",
+              "time": "00:00",
+              "venue": "Worldwide Release",
+              "location": "Worldwide",
+              "image": "https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=800",
+              "tags": ["anime", "shonen"],
+              "status": "upcoming"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tv-shows",
+      "name": "TV Shows",
+      "icon": "📺",
+      "subcategories": [
+        {
+          "id": "netflix",
+          "name": "Netflix",
+          "icon": "🔴",
+          "events": [
+            {
+              "id": "tv-stranger-things-5",
+              "title": "Stranger Things — Season 5",
+              "description": "The final season of the Hawkins saga.",
+              "date": "2026-07-04",
+              "time": "00:00",
+              "venue": "Netflix",
+              "location": "Streaming",
+              "image": "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=800",
+              "tags": ["netflix", "sci-fi", "finale"],
+              "status": "upcoming"
+            },
+            {
+              "id": "tv-squid-game-3",
+              "title": "Squid Game — Season 3",
+              "description": "The deadly games return for a third round.",
+              "date": "2026-06-27",
+              "time": "00:00",
+              "venue": "Netflix",
+              "location": "Streaming",
+              "image": "https://images.unsplash.com/photo-1634157703702-3c124b455499?w=800",
+              "tags": ["netflix", "thriller", "korean"],
+              "status": "upcoming"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming",
+      "name": "Gaming",
+      "icon": "🎮",
+      "subcategories": [
+        {
+          "id": "game-releases",
+          "name": "Game Releases",
+          "icon": "🕹️",
+          "events": [
+            {
+              "id": "game-gta6",
+              "title": "Grand Theft Auto VI",
+              "description": "The most anticipated game of the decade — Vice City returns.",
+              "date": "2026-05-26",
+              "time": "00:00",
+              "venue": "Worldwide",
+              "location": "PS5, Xbox Series X|S",
+              "image": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800",
+              "tags": ["rockstar", "open-world", "aaa"],
+              "status": "upcoming"
+            },
+            {
+              "id": "game-hollow-knight-silksong",
+              "title": "Hollow Knight: Silksong",
+              "description": "The long-awaited sequel to the indie masterpiece.",
+              "date": "2026-06-01",
+              "time": "00:00",
+              "venue": "Worldwide",
+              "location": "PC, Switch, PS5, Xbox",
+              "image": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800",
+              "tags": ["indie", "metroidvania"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "esports",
+          "name": "Esports",
+          "icon": "🏅",
+          "events": [
+            {
+              "id": "esports-valorant-masters-2026",
+              "title": "VCT Masters Shanghai 2026",
+              "description": "Top Valorant teams compete at Masters.",
+              "date": "2026-06-14",
+              "time": "12:00",
+              "endTime": "22:00",
+              "venue": "Mercedes-Benz Arena",
+              "location": "Shanghai, China",
+              "image": "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=800",
+              "tags": ["esports", "valorant", "vct"],
+              "status": "upcoming"
+            },
+            {
+              "id": "esports-ti-2026",
+              "title": "The International 2026 — Dota 2",
+              "description": "The biggest Dota 2 tournament of the year.",
+              "date": "2026-10-10",
+              "time": "16:00",
+              "endTime": "23:00",
+              "venue": "Rogers Arena",
+              "location": "Vancouver, Canada",
+              "image": "https://images.unsplash.com/photo-1511882150382-421056c89033?w=800",
+              "tags": ["esports", "dota2", "the-international"],
+              "status": "upcoming"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "name": "Music",
+      "icon": "🎵",
+      "subcategories": [
+        {
+          "id": "concerts",
+          "name": "Concerts",
+          "icon": "🎤",
+          "events": [
+            {
+              "id": "music-coldplay-india-2026",
+              "title": "Coldplay — Music of the Spheres India Tour",
+              "description": "Coldplay returns to India for their world tour.",
+              "date": "2026-04-18",
+              "time": "19:00",
+              "endTime": "22:30",
+              "venue": "DY Patil Stadium",
+              "location": "Mumbai, India",
+              "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+              "tags": ["concert", "coldplay", "india"],
+              "status": "upcoming"
+            },
+            {
+              "id": "music-arijit-live-2026",
+              "title": "Arijit Singh Live in Concert",
+              "description": "An evening of soulful melodies with Arijit Singh.",
+              "date": "2026-05-10",
+              "time": "19:30",
+              "endTime": "22:00",
+              "venue": "Jawaharlal Nehru Stadium",
+              "location": "Delhi, India",
+              "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800",
+              "tags": ["concert", "bollywood", "india"],
+              "status": "upcoming"
+            }
+          ]
+        },
+        {
+          "id": "festivals",
+          "name": "Music Festivals",
+          "icon": "🎶",
+          "events": [
+            {
+              "id": "music-sunburn-2026",
+              "title": "Sunburn Festival 2026",
+              "description": "Asia's biggest electronic dance music festival.",
+              "date": "2026-12-28",
+              "time": "16:00",
+              "endTime": "02:00",
+              "venue": "Vagator Beach",
+              "location": "Goa, India",
+              "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800",
+              "tags": ["festival", "edm", "india"],
+              "status": "upcoming"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

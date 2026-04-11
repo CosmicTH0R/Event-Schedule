@@ -7,7 +7,7 @@ import { authApi } from '@/lib/authApi';
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setAuth, syncUserData } = useAuthStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +21,8 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       const data = await authApi.register(email, password, name);
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken ?? ``);
+      await syncUserData(data.token);
       router.push('/preferences');
     } catch (err) {
       setError((err as Error).message || 'Registration failed');
@@ -84,3 +85,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+

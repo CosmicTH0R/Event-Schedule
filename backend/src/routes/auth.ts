@@ -3,6 +3,7 @@
  */
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
@@ -19,14 +20,26 @@ import type { User } from '@prisma/client';
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
-const TOKEN_EXPIRY = '7d';
+const ACCESS_TOKEN_EXPIRY = '15m';
+const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+const REFRESH_TOKEN_EXPIRY_MS = REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function signToken(user: Pick<User, 'id' | 'email'>): string {
+function signAccessToken(user: Pick<User, 'id' | 'email'>): string {
   return jwt.sign({ userId: user.id, email: user.email }, config.jwtSecret, {
-    expiresIn: TOKEN_EXPIRY,
+    expiresIn: ACCESS_TOKEN_EXPIRY,
   });
+}
+
+/** Generate a cryptographically-random refresh token and store its hash in DB. */
+async function createRefreshToken(userId: string): Promise<string> {
+  const raw = crypto.randomBytes(40).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(raw).digest('hex');
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS);
+
+  await prisma.refreshToken.create({ data: { userId, tokenHash, expiresAt } });
+  return raw;
 }
 
 function safeUser(user: User): Omit<User, 'passwordHash'> {
@@ -75,7 +88,12 @@ router.post(
       data: { email: normalizedEmail, passwordHash, name: name ?? null },
     });
 
-    res.status(201).json({ token: signToken(user), user: safeUser(user) });
+    const [token, refreshToken] = await Promise.all([
+      Promise.resolve(signAccessToken(user)),
+      createRefreshToken(user.id),
+    ]);
+
+    res.status(201).json({ token, refreshToken, user: safeUser(user) });
   })
 );
 
@@ -102,7 +120,12 @@ router.post(
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new UnauthorizedError('Invalid email or password');
 
-    res.json({ token: signToken(user), user: safeUser(user) });
+    const [token, refreshToken] = await Promise.all([
+      Promise.resolve(signAccessToken(user)),
+      createRefreshToken(user.id),
+    ]);
+
+    res.json({ token, refreshToken, user: safeUser(user) });
   })
 );
 
@@ -159,7 +182,60 @@ router.post(
       });
     }
 
-    res.json({ token: signToken(user), user: safeUser(user) });
+    const [token, refreshToken] = await Promise.all([
+      Promise.resolve(signAccessToken(user)),
+      createRefreshToken(user.id),
+    ]);
+
+    res.json({ token, refreshToken, user: safeUser(user) });
+  })
+);
+
+// ─── POST /api/auth/refresh ───────────────────────────────────────────────────
+
+router.post(
+  '/refresh',
+  authLimiter,
+  asyncHandler(async (req, res) => {
+    const { refreshToken: raw } = req.body as { refreshToken?: string };
+    if (!raw || typeof raw !== 'string') {
+      throw new ValidationError('refreshToken required');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(raw).digest('hex');
+    const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
+
+    if (!stored || stored.expiresAt < new Date()) {
+      // Delete expired record if present
+      if (stored) await prisma.refreshToken.delete({ where: { tokenHash } }).catch(() => {});
+      throw new UnauthorizedError('Invalid or expired refresh token');
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: stored.userId } });
+    if (!user) throw new UnauthorizedError('User not found');
+
+    // Rotate — delete old token, issue new pair
+    await prisma.refreshToken.delete({ where: { tokenHash } });
+    const [newToken, newRefreshToken] = await Promise.all([
+      Promise.resolve(signAccessToken(user)),
+      createRefreshToken(user.id),
+    ]);
+
+    res.json({ token: newToken, refreshToken: newRefreshToken });
+  })
+);
+
+// ─── POST /api/auth/logout ────────────────────────────────────────────────────
+
+router.post(
+  '/logout',
+  asyncHandler(async (req, res) => {
+    const { refreshToken: raw } = req.body as { refreshToken?: string };
+    if (raw && typeof raw === 'string') {
+      const tokenHash = crypto.createHash('sha256').update(raw).digest('hex');
+      await prisma.refreshToken.deleteMany({ where: { tokenHash } });
+    }
+    res.json({ ok: true });
   })
 );
 

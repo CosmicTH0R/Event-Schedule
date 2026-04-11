@@ -9,6 +9,7 @@ interface StoreState {
   modalEvent: Event | null;
   sidebarOpen: boolean;
   toggleCategory: (catId: string) => void;
+  setSelectedCategories: (catIds: string[]) => void;
   openModal: (event: Event) => void;
   closeModal: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -34,6 +35,10 @@ const useStore = create<StoreState>()(
             ? current.filter((id) => id !== catId)
             : [...current, catId],
         });
+      },
+
+      setSelectedCategories: (catIds: string[]) => {
+        set({ selectedCategories: Array.from(new Set(catIds)) });
       },
 
       openModal: (event: Event) => set({ modalEvent: event }),

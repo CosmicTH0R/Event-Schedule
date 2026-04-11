@@ -4,6 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import EventModal from '@/components/EventModal';
 import ClientInit from '@/components/ClientInit';
+import LiveBanner from '@/components/LiveBanner';
 
 export const metadata = {
   title: 'EventPulse — Your Personalized Event Feed',
@@ -40,6 +41,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Sidebar categories={categories} />
         <main className="main">
           <Topbar />
+          <LiveBanner />
           {children}
         </main>
         <EventModal />

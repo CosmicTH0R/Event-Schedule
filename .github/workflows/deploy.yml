@@ -9,11 +9,26 @@ on:
 jobs:
   # ─── Backend tests ────────────────────────────────────────────────────────────
   backend-test:
-    name: Backend — lint & health check
+    name: Backend — lint, test & health check
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci_pass
+          POSTGRES_DB: eventpulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -33,15 +48,22 @@ jobs:
       - name: Type-check
         run: npx tsc --noEmit
 
-      - name: Push schema (SQLite test DB)
+      - name: Push schema (PostgreSQL CI DB)
         run: npx prisma db push
         env:
-          DATABASE_URL: "file:./test.db"
+          DATABASE_URL: "postgresql://ci:ci_pass@localhost:5432/eventpulse_test"
+
+      - name: Run tests (Vitest)
+        run: npm test
+        env:
+          DATABASE_URL: "postgresql://ci:ci_pass@localhost:5432/eventpulse_test"
+          JWT_SECRET: "ci_test_secret"
+          NODE_ENV: "test"
 
       - name: Build TypeScript
         run: npm run build
         env:
-          DATABASE_URL: "file:./test.db"
+          DATABASE_URL: "postgresql://ci:ci_pass@localhost:5432/eventpulse_test"
 
       - name: Start server & health check
         run: |
@@ -56,9 +78,9 @@ jobs:
           fi
           echo "Health check passed: HTTP $STATUS"
         env:
-          DATABASE_URL: "file:./test.db"
+          DATABASE_URL: "postgresql://ci:ci_pass@localhost:5432/eventpulse_test"
           JWT_SECRET: "ci_test_secret"
-          NODE_ENV: "test"
+          NODE_ENV: "production"
           PORT: "3001"
 
   # ─── Frontend build ───────────────────────────────────────────────────────────

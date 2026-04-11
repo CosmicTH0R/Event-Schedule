@@ -9,11 +9,51 @@ import config from '../config';
 import { broadcastLive } from '../services/liveService';
 import type { NormalizedEvent } from '../types';
 
+let loggedBadDbUrl = false;
+let loggedDbUnavailable = false;
+
+function hasValidPostgresUrl(): boolean {
+  const url = process.env.DATABASE_URL ?? '';
+  const ok = /^postgres(?:ql)?:\/\//i.test(url.trim());
+
+  if (!ok && !loggedBadDbUrl) {
+    loggedBadDbUrl = true;
+    logger.error(
+      '[cron] DATABASE_URL is invalid for Prisma postgresql datasource. Use postgresql://...'
+    );
+  }
+
+  return ok;
+}
+
+async function canUseDatabase(): Promise<boolean> {
+  if (!hasValidPostgresUrl()) return false;
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    loggedDbUnavailable = false;
+    return true;
+  } catch (err) {
+    if (!loggedDbUnavailable) {
+      loggedDbUnavailable = true;
+      logger.error(
+        { err: (err as Error).message },
+        '[cron] Database is unavailable; skipping scheduled refresh jobs'
+      );
+    }
+    return false;
+  }
+}
+
 // ─── Upsert helper ────────────────────────────────────────────────────────────
 
 export async function upsertEvents(
   events: NormalizedEvent[]
 ): Promise<{ inserted: number; updated: number }> {
+  if (!(await canUseDatabase())) {
+    return { inserted: 0, updated: 0 };
+  }
+
   let inserted = 0;
   let updated = 0;
 
@@ -52,6 +92,7 @@ async function bustEventCache(): Promise<void> {
 // ─── Job runners ─────────────────────────────────────────────────────────────
 
 export async function runF1Job(): Promise<void> {
+  if (!(await canUseDatabase())) return;
   try {
     const { fetchSeason } = await import('../services/f1Service');
     const events = await fetchSeason();
@@ -65,6 +106,7 @@ export async function runF1Job(): Promise<void> {
 }
 
 export async function runTMDBJob(): Promise<void> {
+  if (!(await canUseDatabase())) return;
   if (!config.apiKeys.tmdb) {
     logger.warn('[cron] TMDB_API_KEY not set — skipping TMDB refresh');
     return;
@@ -82,6 +124,7 @@ export async function runTMDBJob(): Promise<void> {
 }
 
 export async function runFootballJob(): Promise<void> {
+  if (!(await canUseDatabase())) return;
   if (!config.apiKeys.football) {
     logger.warn('[cron] FOOTBALL_DATA_KEY not set — skipping football refresh');
     return;
@@ -99,6 +142,7 @@ export async function runFootballJob(): Promise<void> {
 }
 
 export async function runCricketJob(): Promise<void> {
+  if (!(await canUseDatabase())) return;
   if (!config.apiKeys.cricket) {
     logger.warn('[cron] CRICKET_API_KEY not set — skipping cricket refresh');
     return;
@@ -116,6 +160,7 @@ export async function runCricketJob(): Promise<void> {
 }
 
 export async function runGamingJob(): Promise<void> {
+  if (!(await canUseDatabase())) return;
   if (!config.apiKeys.rawg) {
     logger.warn('[cron] RAWG_API_KEY not set — skipping gaming refresh');
     return;
@@ -133,12 +178,58 @@ export async function runGamingJob(): Promise<void> {
 
 // ─── Schedule definitions ─────────────────────────────────────────────────────
 
+export async function runReminderJob(): Promise<void> {
+  if (!(await canUseDatabase())) return;
+  try {
+    const { sendReminderEmail } = await import('../services/emailService');
+
+    const now = new Date();
+    // Find reminders due within the next minute & not yet sent
+    const dueSoon = await prisma.reminder.findMany({
+      where: {
+        sent: false,
+        remindAt: { lte: new Date(now.getTime() + 60_000) },
+      },
+      include: { user: { select: { email: true } } },
+    });
+
+    if (dueSoon.length === 0) return;
+
+    for (const reminder of dueSoon) {
+      const event = await prisma.cachedEvent.findUnique({
+        where: { externalId: reminder.eventId },
+      });
+      if (!event) continue;
+
+      await sendReminderEmail({
+        to: reminder.user.email,
+        eventTitle: event.title,
+        eventDate: event.date,
+        eventTime: event.time,
+        eventVenue: event.venue || undefined,
+        remindBefore: reminder.remindBefore,
+      });
+
+      // Mark as sent
+      await prisma.reminder.update({
+        where: { id: reminder.id },
+        data: { sent: true },
+      });
+    }
+
+    logger.info({ count: dueSoon.length }, '[cron] Reminders processed');
+  } catch (err) {
+    logger.warn({ err: (err as Error).message }, '[cron] Reminder job failed');
+  }
+}
+
 export function startScheduler(): void {
   cron.schedule('0 */1 * * *', runF1Job, { name: 'f1-refresh' });
   cron.schedule('0 */6 * * *', runTMDBJob, { name: 'tmdb-refresh' });
   cron.schedule('15 */1 * * *', runFootballJob, { name: 'football-refresh' });
   cron.schedule('*/30 * * * *', runCricketJob, { name: 'cricket-refresh' });
   cron.schedule('0 2 * * *', runGamingJob, { name: 'gaming-refresh' });
+  cron.schedule('* * * * *', runReminderJob, { name: 'reminders' }); // every minute
 
-  logger.info('Background refresh scheduler started (F1/TMDB/Football/Cricket/Gaming)');
+  logger.info('Background refresh scheduler started (F1/TMDB/Football/Cricket/Gaming/Reminders)');
 }

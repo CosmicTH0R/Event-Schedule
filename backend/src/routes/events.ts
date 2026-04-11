@@ -86,7 +86,7 @@ function buildWhere(filters: {
       { description: { contains: filters.search } },
       { venue: { contains: filters.search } },
       { location: { contains: filters.search } },
-      { tags: { contains: filters.search } },
+      { tags: { has: filters.search } },
     ];
   }
   return where;
@@ -168,7 +168,7 @@ router.get(
     const currentTime = `${hh}:${mm}`;
 
     const rows = await prisma.cachedEvent.findMany({
-      where: { date: today, time: { lte: currentTime }, tags: { contains: 'live' } },
+      where: { date: today, time: { lte: currentTime }, tags: { has: 'live' } },
       orderBy: { time: 'asc' },
     });
     const data = await serializeRows(rows);

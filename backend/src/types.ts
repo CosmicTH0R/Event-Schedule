@@ -25,7 +25,7 @@ export interface NormalizedEvent {
   venue: string;
   location: string;
   imageUrl: string;
-  tags: string;
+  tags: string[];   // native array — maps to PostgreSQL text[]
   status: string;
   expiresAt: Date;
 }
