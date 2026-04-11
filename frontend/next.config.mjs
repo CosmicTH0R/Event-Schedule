@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -23,4 +25,14 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// Only wrap with Sentry when NEXT_PUBLIC_SENTRY_DSN is defined.
+// This keeps local dev builds free of Sentry overhead.
+export default process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      telemetry: false,
+      widenClientFileUpload: true,
+      hideSourceMaps: true,
+      disableLogger: true,
+    })
+  : nextConfig;

@@ -2,14 +2,16 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { authApi } from '@/lib/authApi';
 import type { User, Reminder } from '@/types';
 
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   bookmarks: string[];
   reminders: Reminder[];
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, token: string, refreshToken: string) => void;
   logout: () => void;
   setBookmarks: (bookmarks: Array<{ eventId: string }>) => void;
   addBookmark: (eventId: string) => void;
@@ -17,6 +19,9 @@ interface AuthState {
   setReminders: (reminders: Reminder[]) => void;
   addReminder: (reminder: Reminder) => void;
   removeReminder: (id: string) => void;
+  /** Silently rotate the access token using the stored refresh token.
+   *  Returns the new access token, or null if refresh fails (user is logged out). */
+  silentRefresh: () => Promise<string | null>;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -24,11 +29,18 @@ const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
-      bookmarks: [],    // array of eventId strings
-      reminders: [],    // array of { id, eventId, remindBefore, remindAt }
+      refreshToken: null,
+      bookmarks: [],
+      reminders: [],
 
-      setAuth: (user: User, token: string) => set({ user, token }),
-      logout: () => set({ user: null, token: null, bookmarks: [], reminders: [] }),
+      setAuth: (user: User, token: string, refreshToken: string) =>
+        set({ user, token, refreshToken }),
+
+      logout: () => {
+        const { refreshToken } = get();
+        authApi.logout(refreshToken).catch(() => {});
+        set({ user: null, token: null, refreshToken: null, bookmarks: [], reminders: [] });
+      },
 
       setBookmarks: (bookmarks: Array<{ eventId: string }>) =>
         set({ bookmarks: bookmarks.map((b) => b.eventId) }),
@@ -50,10 +62,23 @@ const useAuthStore = create<AuthState>()(
 
       removeReminder: (id: string) =>
         set((s) => ({ reminders: s.reminders.filter((r) => r.id !== id) })),
+
+      silentRefresh: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken) return null;
+        try {
+          const data = await authApi.refresh(refreshToken);
+          set({ token: data.token, refreshToken: data.refreshToken });
+          return data.token;
+        } catch {
+          set({ user: null, token: null, refreshToken: null, bookmarks: [], reminders: [] });
+          return null;
+        }
+      },
     }),
     {
-      name: 'eventpulse-auth-v1',
-      partialize: (s) => ({ user: s.user, token: s.token }),
+      name: 'eventpulse-auth-v2',
+      partialize: (s) => ({ user: s.user, token: s.token, refreshToken: s.refreshToken }),
     }
   )
 );

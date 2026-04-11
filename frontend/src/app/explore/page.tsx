@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import EventCard from '@/components/EventCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { api } from '@/lib/api';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import type { Event, Pagination, Category, Subcategory } from '@/types';
 
 const SKELETONS = Array.from({ length: 8 });
@@ -30,7 +31,9 @@ function ExploreContent() {
     if (!activeCat && !activeSub) { setLoading(false); return; }
     setLoading(true);
     setPage(1);
+    setEvents([]);
     fetchPage(1, false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCat, activeSub]);
 
   async function fetchPage(p: number, append = false) {
@@ -44,13 +47,17 @@ function ExploreContent() {
     finally { setLoading(false); }
   }
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !pagination?.hasNext) return;
     const next = page + 1;
     setPage(next);
     setLoadingMore(true);
     await fetchPage(next, true);
     setLoadingMore(false);
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, pagination, page, activeCat, activeSub]);
+
+  const sentinelRef = useInfiniteScroll(loadMore, !!pagination?.hasNext && !loading);
 
   const selectedCategory = categories.find((c) => c.id === activeCat);
 
@@ -136,13 +143,8 @@ function ExploreContent() {
         {loadingMore && SKELETONS.map((_, i) => <SkeletonCard key={`more-${i}`} />)}
       </div>
 
-      {pagination?.hasNext && !loading && (
-        <div className="load-more-wrap">
-          <button className="btn btn-primary" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? 'Loading...' : 'Load More'}
-          </button>
-        </div>
-      )}
+      {/* Infinite scroll sentinel — replaces the manual Load More button */}
+      <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
     </div>
   );
 }

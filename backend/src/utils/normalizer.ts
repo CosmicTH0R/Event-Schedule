@@ -45,7 +45,11 @@ export function normalizeEvent(raw: RawEvent): NormalizedEvent {
     venue: raw.venue ?? '',
     location: raw.location ?? '',
     imageUrl: raw.imageUrl ?? '',
-    tags: Array.isArray(raw.tags) ? raw.tags.join('|') : raw.tags ?? '',
+    tags: Array.isArray(raw.tags)
+      ? raw.tags
+      : typeof raw.tags === 'string' && raw.tags.length > 0
+        ? raw.tags.split('|').filter(Boolean)
+        : [],
     status: raw.status ?? 'upcoming',
     expiresAt,
   };
@@ -75,7 +79,7 @@ export function serializeEvent(
     venue: row.venue,
     location: row.location,
     image: row.imageUrl,
-    tags: row.tags ? row.tags.split('|').filter(Boolean) : [],
+    tags: row.tags ?? [],
     status: row.status,
   };
 }

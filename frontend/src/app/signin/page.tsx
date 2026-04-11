@@ -19,7 +19,7 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const data = await authApi.login(email, password);
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken ?? ``);
       router.push('/today');
     } catch (err) {
       setError((err as Error).message || 'Invalid email or password');
@@ -73,3 +73,4 @@ export default function SignInPage() {
     </div>
   );
 }
+

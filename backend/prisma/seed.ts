@@ -39,7 +39,7 @@ interface SeedData {
 async function main(): Promise<void> {
   console.log('🌱 Seeding database from events.json...');
 
-  const eventsPath = path.join(__dirname, '../../v1/data/events.json');
+  const eventsPath = path.join(__dirname, 'events.json');
   const data: SeedData = JSON.parse(fs.readFileSync(eventsPath, 'utf-8'));
 
   let catCount = 0;
@@ -84,7 +84,7 @@ async function main(): Promise<void> {
             venue: event.venue ?? '',
             location: event.location ?? '',
             imageUrl: event.image ?? '',
-            tags: Array.isArray(event.tags) ? event.tags.join('|') : '',
+            tags: Array.isArray(event.tags) ? event.tags : event.tags ? [event.tags] : [],
             status: event.status ?? 'upcoming',
             expiresAt,
           },
@@ -101,7 +101,7 @@ async function main(): Promise<void> {
             venue: event.venue ?? '',
             location: event.location ?? '',
             imageUrl: event.image ?? '',
-            tags: Array.isArray(event.tags) ? event.tags.join('|') : '',
+            tags: Array.isArray(event.tags) ? event.tags : event.tags ? [event.tags] : [],
             status: event.status ?? 'upcoming',
             expiresAt,
           },
@@ -122,3 +122,4 @@ main()
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());
+

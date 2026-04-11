@@ -1,7 +1,9 @@
+import './instrument'; // Sentry must be the first import
 import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import * as Sentry from '@sentry/node';
 
 import config from './config';
 import logger from './utils/logger';
@@ -71,51 +73,52 @@ app.use((req, _res, next) => {
 
 app.use(errorHandler);
 
-// ─── Start server ─────────────────────────────────────────────────────────────
+// ─── Start server (skipped in test environment) ──────────────────────────────
 
-const server = app.listen(config.port, () => {
-  logger.info(
-    `⚡ EventPulse API  →  http://localhost:${config.port}  [${config.nodeEnv}]`
-  );
-  startScheduler();
-  startSSE();
+if (process.env.NODE_ENV !== 'test') {
+  const server = app.listen(config.port, () => {
+    logger.info(
+      `⚡ EventPulse API  →  http://localhost:${config.port}  [${config.nodeEnv}]`
+    );
+    startScheduler();
+    startSSE();
 
-  import('./cron/scheduler').then(
-    ({ runF1Job, runTMDBJob, runFootballJob, runCricketJob, runGamingJob }) => {
-      logger.info('Running initial data fetch from all sources...');
-      Promise.allSettled([
-        runF1Job(),
-        runTMDBJob(),
-        runCricketJob(),
-        runGamingJob(),
-        runFootballJob(),
-      ]).then((results) => {
-        const failed = results.filter((r) => r.status === 'rejected').length;
-        logger.info({ failed }, 'Initial data fetch complete');
-      });
-    }
-  );
-});
-
-// ─── Graceful shutdown ────────────────────────────────────────────────────────
-
-function shutdown(signal: string): void {
-  logger.info(`${signal} → shutting down gracefully`);
-  stopSSE();
-  server.close(async () => {
-    try {
-      const prisma = (await import('./db')).default;
-      await prisma.$disconnect();
-    } catch {
-      // ignore
-    }
-    logger.info('Server closed');
-    process.exit(0);
+    import('./cron/scheduler').then(
+      ({ runF1Job, runTMDBJob, runFootballJob, runCricketJob, runGamingJob }) => {
+        logger.info('Running initial data fetch from all sources...');
+        Promise.allSettled([
+          runF1Job(),
+          runTMDBJob(),
+          runCricketJob(),
+          runGamingJob(),
+          runFootballJob(),
+        ]).then((results) => {
+          const failed = results.filter((r) => r.status === 'rejected').length;
+          logger.info({ failed }, 'Initial data fetch complete');
+        });
+      }
+    );
   });
-  setTimeout(() => process.exit(1), 10_000);
-}
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+  // ─── Graceful shutdown ──────────────────────────────────────────────────────
+  function shutdown(signal: string): void {
+    logger.info(`${signal} → shutting down gracefully`);
+    stopSSE();
+    server.close(async () => {
+      try {
+        const prisma = (await import('./db')).default;
+        await prisma.$disconnect();
+      } catch {
+        // ignore
+      }
+      logger.info('Server closed');
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10_000);
+  }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
 
 export default app;

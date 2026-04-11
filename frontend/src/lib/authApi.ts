@@ -8,7 +8,9 @@ async function authFetch(path: string, options: RequestInit = {}, token: string 
   const res = await fetch(path, { ...options, headers, cache: 'no-store' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.message || data.error || `HTTP ${res.status}`);
+    const err = new Error(data.message || data.error || `HTTP ${res.status}`) as Error & { status: number };
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
@@ -30,6 +32,18 @@ export const authApi = {
     authFetch('/api/auth/google', {
       method: 'POST',
       body: JSON.stringify({ idToken }),
+    }),
+
+  refresh: (refreshToken: string): Promise<{ token: string; refreshToken: string }> =>
+    authFetch('/api/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }),
+
+  logout: (refreshToken: string | null): Promise<any> =>
+    authFetch('/api/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
     }),
 
   getMe: (token: string): Promise<any> =>

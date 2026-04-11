@@ -76,7 +76,7 @@ export async function broadcastLive(): Promise<void> {
       subcategoryId: { in: ['cricket', 'football', 'f1'] },
       OR: [
         { status: 'live' },
-        { tags: { contains: 'live' } },
+        { tags: { has: 'live' } },
       ],
     },
     orderBy: { time: 'asc' },

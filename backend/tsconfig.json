@@ -13,6 +13,6 @@
     "sourceMap": true,
     "declaration": true
   },
-  "include": ["src/**/*", "prisma/seed.ts"],
+  "include": ["src/**/*", "prisma/seed.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

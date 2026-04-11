@@ -21,7 +21,7 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       const data = await authApi.register(email, password, name);
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken ?? ``);
       router.push('/preferences');
     } catch (err) {
       setError((err as Error).message || 'Registration failed');
@@ -84,3 +84,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+

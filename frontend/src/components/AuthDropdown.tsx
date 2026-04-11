@@ -38,7 +38,7 @@ export default function AuthDropdown({ defaultTab = 'login', onTabChange, onClos
         if (!name.trim()) { setError('Name is required'); setLoading(false); return; }
         data = await authApi.register(email, password, name);
       }
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken ?? ``);
       onClose();
     } catch (err) {
       setError((err as Error).message || 'Something went wrong');
@@ -132,3 +132,4 @@ export default function AuthDropdown({ defaultTab = 'login', onTabChange, onClos
     </div>
   );
 }
+

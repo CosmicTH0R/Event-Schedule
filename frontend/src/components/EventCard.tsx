@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import Link from 'next/link';
 import useStore from '@/store/useStore';
 import useAuthStore from '@/store/useAuthStore';
 import { authApi } from '@/lib/authApi';
@@ -93,6 +94,15 @@ export default function EventCard({ event }: Props) {
               {isBookmarked ? '🔖' : '🏷️'}
             </button>
           )}
+          <Link
+            href={`/event/${event.id}`}
+            className="event-share-link"
+            title="Open event page"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Shareable event page"
+          >
+            🔗
+          </Link>
         </div>
       </div>
     </article>
