@@ -18,7 +18,7 @@ export default function AuthDropdown({ defaultTab = 'login', onTabChange, onClos
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { setAuth } = useAuthStore();
+  const { setAuth, syncUserData } = useAuthStore();
 
   const switchTab = (t: string) => {
     setTab(t);
@@ -39,6 +39,7 @@ export default function AuthDropdown({ defaultTab = 'login', onTabChange, onClos
         data = await authApi.register(email, password, name);
       }
       setAuth(data.user, data.token, data.refreshToken ?? ``);
+      await syncUserData(data.token);
       onClose();
     } catch (err) {
       setError((err as Error).message || 'Something went wrong');

@@ -55,7 +55,9 @@ export const authApi = {
   savePreferences: (token: string, categoryIds: string[]): Promise<any> =>
     authFetch('/api/user/preferences', {
       method: 'PUT',
-      body: JSON.stringify({ categoryIds }),
+      body: JSON.stringify({
+        categories: categoryIds.map((categoryId) => ({ categoryId })),
+      }),
     }, token),
 
   getBookmarks: (token: string, page = 1): Promise<any> =>
